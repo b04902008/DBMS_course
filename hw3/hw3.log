@@ -1,0 +1,331 @@
+mysql> SELECT database();
++------------------------+
+| database()             |
++------------------------+
+| volleyball_gamerecoder |
++------------------------+
+1 row in set (0.00 sec)
+
+mysql> SHOW TABLES FROM volleyball_gamerecoder;
++----------------------------------+
+| Tables_in_volleyball_gamerecoder |
++----------------------------------+
+| competition                      |
+| depend                           |
+| enroll                           |
+| game                             |
+| member                           |
+| record                           |
+| team                             |
++----------------------------------+
+7 rows in set (0.00 sec)
+
+mysql> 
+mysql> # basic select
+mysql> SELECT *
+    -> FROM member
+    -> WHERE teamID=1 AND (NOT (role='coach' OR role='manager'));
++--------+------------+--------+-------------+---------+---------------+
+| teamID | IDnumber   | name   | degree      | role    | jersey_number |
++--------+------------+--------+-------------+---------+---------------+
+|      1 | F123455555 | Kathy  | univ-dept-2 | spiker  |             2 |
+|      1 | F123456666 | Silvia | univ-dept-3 | setter  |            11 |
+|      1 | F123456788 | Melody | univ-dept-2 | blocker |             1 |
++--------+------------+--------+-------------+---------+---------------+
+3 rows in set (0.01 sec)
+
+mysql> # basic projection
+mysql> SELECT name, role
+    -> FROM member;
++---------+---------+
+| name    | role    |
++---------+---------+
+| Paula   | manager |
+| Charles | spiker  |
+| Richie  | manager |
+| Kathy   | spiker  |
+| Silvia  | setter  |
+| Jessica | coach   |
+| Melody  | blocker |
+| Monica  | manager |
++---------+---------+
+8 rows in set (0.00 sec)
+
+mysql> # basic rename
+mysql> SELECT m.teamID AS team, m.jersey_number, m.name AS player
+    -> FROM member AS m
+    -> WHERE NOT (m.role='coach' OR m.role='manager')
+    -> ORDER BY team, m.jersey_number;
++------+---------------+---------+
+| team | jersey_number | player  |
++------+---------------+---------+
+|    1 |             1 | Melody  |
+|    1 |             2 | Kathy   |
+|    1 |            11 | Silvia  |
+|    2 |            16 | Charles |
++------+---------------+---------+
+4 rows in set (0.00 sec)
+
+mysql> 
+mysql> # union
+mysql> (SELECT teamID, name FROM team)
+    -> UNION
+    -> (SELECT teamID, name FROM member)
+    -> ORDER BY teamID;
++--------+-----------+
+| teamID | name      |
++--------+-----------+
+|      1 | Richie    |
+|      1 | girlteam1 |
+|      1 | Kathy     |
+|      1 | Silvia    |
+|      1 | Jessica   |
+|      1 | Melody    |
+|      1 | Monica    |
+|      2 | boyteam1  |
+|      2 | Paula     |
+|      2 | Charles   |
+|      3 | girlteam2 |
+|      4 | boyteam2  |
++--------+-----------+
+12 rows in set (0.00 sec)
+
+mysql> # equijoin
+mysql> SELECT team.name AS team, member.name AS member
+    -> FROM team JOIN member ON team.teamID=member.teamID
+    -> ORDER BY team;
++-----------+---------+
+| team      | member  |
++-----------+---------+
+| boyteam1  | Paula   |
+| boyteam1  | Charles |
+| girlteam1 | Richie  |
+| girlteam1 | Kathy   |
+| girlteam1 | Silvia  |
+| girlteam1 | Jessica |
+| girlteam1 | Melody  |
+| girlteam1 | Monica  |
++-----------+---------+
+8 rows in set (0.01 sec)
+
+mysql> # natural join
+mysql> SELECT name AS team, member
+    -> FROM team NATURAL JOIN (SELECT teamID, name AS member FROM member) AS m
+    -> ORDER BY team;
++-----------+---------+
+| team      | member  |
++-----------+---------+
+| boyteam1  | Paula   |
+| boyteam1  | Charles |
+| girlteam1 | Richie  |
+| girlteam1 | Kathy   |
+| girlteam1 | Silvia  |
+| girlteam1 | Jessica |
+| girlteam1 | Melody  |
+| girlteam1 | Monica  |
++-----------+---------+
+8 rows in set (0.00 sec)
+
+mysql> # theta join
+mysql> SELECT A.competitionID, A.court, A.gameID AS early_game, B.gameID AS later_game
+    -> FROM game as A, game AS B
+    -> WHERE A.competitionID=B.competitionID AND A.court=B.court AND A.start_time<B.start_time
+    -> ORDER BY A.court, early_game, later_game;
++-------------------------+-------+------------+------------+
+| competitionID           | court | early_game | later_game |
++-------------------------+-------+------------+------------+
+| 2018-hsiao-nei-carnival |     1 |          1 |          3 |
+| 2018-hsiao-nei-carnival |     1 |          1 |          5 |
+| 2018-hsiao-nei-carnival |     1 |          3 |          5 |
+| 2018-hsiao-nei-carnival |     2 |          2 |          4 |
+| 2018-hsiao-nei-carnival |     2 |          2 |          6 |
+| 2018-hsiao-nei-carnival |     2 |          4 |          6 |
++-------------------------+-------+------------+------------+
+6 rows in set (0.00 sec)
+
+mysql> 
+mysql> # three table join
+mysql> SELECT competition.name AS competition, game.gameID AS game, ballID AS ball, scorer
+    -> FROM competition, game, record
+    -> WHERE competition.name=game.competitionID AND game.gameID=record.gameID
+    -> ORDER BY competition, game, ball;
++-------------------------+------+-------+------------+
+| competition             | game | ball  | scorer     |
++-------------------------+------+-------+------------+
+| 2018-hsiao-nei-carnival |    1 | 1-0-1 | F123456788 |
+| 2018-hsiao-nei-carnival |    1 | 1-0-2 | F123455555 |
+| 2018-hsiao-nei-carnival |    1 | 1-0-3 | F123456666 |
+| 2018-hsiao-nei-carnival |    1 | 1-0-4 | F123456788 |
+| 2018-hsiao-nei-carnival |    1 | 1-1-1 | F122222222 |
+| 2018-hsiao-nei-carnival |    3 | 1-0-1 | F123456788 |
+| 2018-hsiao-nei-carnival |    3 | 1-0-2 | F123444444 |
++-------------------------+------+-------+------------+
+7 rows in set (0.00 sec)
+
+mysql> # aggregate (max, min, count)
+mysql> SELECT team.teamID, COUNT(*) AS member_num, MIN(jersey_number), MAX(jersey_number)
+    -> FROM team, member
+    -> WHERE team.teamID=member.teamID
+    -> GROUP BY team.teamID
+    -> ORDER BY team.teamID;
++--------+------------+--------------------+--------------------+
+| teamID | member_num | MIN(jersey_number) | MAX(jersey_number) |
++--------+------------+--------------------+--------------------+
+|      1 |          6 |                  1 |                 11 |
+|      2 |          2 |                 16 |                 16 |
++--------+------------+--------------------+--------------------+
+2 rows in set (0.01 sec)
+
+mysql> # aggregate (avg, sum, count)
+mysql> SELECT teamID, COUNT(*) AS competition_num, SUM(fee), AVG(fee)
+    -> FROM competition JOIN enroll ON name=competitionID
+    -> GROUP BY teamID
+    -> ORDER BY teamID;
++--------+-----------------+----------+-----------+
+| teamID | competition_num | SUM(fee) | AVG(fee)  |
++--------+-----------------+----------+-----------+
+|      1 |               3 |     8000 | 2666.6667 |
+|      2 |               2 |     6800 | 3400.0000 |
+|      3 |               3 |     8000 | 2666.6667 |
+|      4 |               2 |     6800 | 3400.0000 |
++--------+-----------------+----------+-----------+
+4 rows in set (0.00 sec)
+
+mysql> # in (explicit set value)
+mysql> SELECT teamID, jersey_number, name AS player, role
+    -> FROM member
+    -> WHERE role IN ('spiker', 'blocker', 'setter', 'libero')
+    -> ORDER BY teamID, jersey_number;
++--------+---------------+---------+---------+
+| teamID | jersey_number | player  | role    |
++--------+---------------+---------+---------+
+|      1 |             1 | Melody  | blocker |
+|      1 |             2 | Kathy   | spiker  |
+|      1 |            11 | Silvia  | setter  |
+|      2 |            16 | Charles | spiker  |
++--------+---------------+---------+---------+
+4 rows in set (0.00 sec)
+
+mysql> # in (dynamic set value)
+mysql> SELECT gameID, name AS player, ballID, cause
+    -> FROM (record JOIN member ON record.scorer=member.IDnumber)
+    -> WHERE scorer in
+    -> (SELECT IDnumber
+    ->     FROM member
+    ->     WHERE teamID=1);
++--------+--------+--------+--------+
+| gameID | player | ballID | cause  |
++--------+--------+--------+--------+
+|      1 | Melody | 1-0-1  | block  |
+|      1 | Kathy  | 1-0-2  | ace    |
+|      1 | Silvia | 1-0-3  | set    |
+|      1 | Melody | 1-0-4  | attack |
+|      3 | Melody | 1-0-1  | ace    |
++--------+--------+--------+--------+
+5 rows in set (0.00 sec)
+
+mysql> # correlated nested query (in)
+mysql> SELECT gameID, ballID, scorer
+    -> FROM record
+    -> WHERE scorer in
+    -> (SELECT IDnumber
+    ->     FROM member
+    ->     WHERE role='blocker' AND record.cause='block');
++--------+--------+------------+
+| gameID | ballID | scorer     |
++--------+--------+------------+
+|      1 | 1-0-1  | F123456788 |
++--------+--------+------------+
+1 row in set (0.00 sec)
+
+mysql> # correlated nested query (exist)
+mysql> SELECT competitionID, teamID_1, teamID_2
+    -> FROM game
+    -> WHERE EXISTS
+    -> (SELECT *
+    ->     FROM member
+    ->     WHERE (teamID=teamID_1 OR teamID=teamID_2) AND NOT (role='coach' OR role='manager'));
++-------------------------+----------+----------+
+| competitionID           | teamID_1 | teamID_2 |
++-------------------------+----------+----------+
+| 2018-hsiao-nei-carnival |        1 |        2 |
+| 2018-hsiao-nei-carnival |        1 |        3 |
+| 2018-hsiao-nei-carnival |        2 |        4 |
+| 2018-hsiao-nei-carnival |        1 |        4 |
+| 2018-hsiao-nei-carnival |        2 |        3 |
++-------------------------+----------+----------+
+5 rows in set (0.00 sec)
+
+mysql> 
+mysql> # bonus1 (left outer join)
+mysql> SELECT team.name AS team, member.name AS member
+    -> FROM team LEFT OUTER JOIN member ON team.teamID=member.teamID
+    -> ORDER BY team;
++-----------+---------+
+| team      | member  |
++-----------+---------+
+| boyteam1  | Paula   |
+| boyteam1  | Charles |
+| boyteam2  | NULL    |
+| girlteam1 | Silvia  |
+| girlteam1 | Jessica |
+| girlteam1 | Richie  |
+| girlteam1 | Melody  |
+| girlteam1 | Kathy   |
+| girlteam1 | Monica  |
+| girlteam2 | NULL    |
++-----------+---------+
+10 rows in set (0.00 sec)
+
+mysql> # bonus2 (full outer join)
+mysql> (SELECT name, gameID, ballID, cause
+    -> FROM member LEFT OUTER JOIN record ON IDnumber=scorer)
+    -> UNION
+    -> (SELECT name, gameID, ballID, cause
+    -> FROM member RIGHT OUTER JOIN record ON IDnumber=scorer);
++---------+--------+--------+--------+
+| name    | gameID | ballID | cause  |
++---------+--------+--------+--------+
+| Melody  |      1 | 1-0-1  | block  |
+| Kathy   |      1 | 1-0-2  | ace    |
+| Silvia  |      1 | 1-0-3  | set    |
+| Melody  |      1 | 1-0-4  | attack |
+| Charles |      1 | 1-1-1  | attack |
+| Melody  |      3 | 1-0-1  | ace    |
+| Paula   |   NULL | NULL   | NULL   |
+| Richie  |   NULL | NULL   | NULL   |
+| Jessica |   NULL | NULL   | NULL   |
+| Monica  |   NULL | NULL   | NULL   |
+| NULL    |      3 | 1-0-2  | ace    |
++---------+--------+--------+--------+
+11 rows in set (0.00 sec)
+
+mysql> # bonus3 (having clause)
+mysql> SELECT teamID, COUNT(*) AS competition_num, SUM(fee), AVG(fee)
+    -> FROM competition JOIN enroll ON name=competitionID
+    -> GROUP BY teamID
+    -> HAVING competition_num>2
+    -> ORDER BY teamID;
++--------+-----------------+----------+-----------+
+| teamID | competition_num | SUM(fee) | AVG(fee)  |
++--------+-----------------+----------+-----------+
+|      1 |               3 |     8000 | 2666.6667 |
+|      3 |               3 |     8000 | 2666.6667 |
++--------+-----------------+----------+-----------+
+2 rows in set (0.00 sec)
+
+mysql> # bonus4 (not exist)
+mysql> SELECT competitionID, teamID_1, teamID_2
+    -> FROM game
+    -> WHERE NOT EXISTS
+    -> (SELECT *
+    ->     FROM member
+    ->     WHERE (teamID=teamID_1 OR teamID=teamID_2) AND NOT (role='coach' OR role='manager'));
++-------------------------+----------+----------+
+| competitionID           | teamID_1 | teamID_2 |
++-------------------------+----------+----------+
+| 2018-hsiao-nei-carnival |        3 |        4 |
++-------------------------+----------+----------+
+1 row in set (0.00 sec)
+
+mysql> NOTEE

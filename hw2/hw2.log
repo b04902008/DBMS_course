@@ -1,0 +1,400 @@
+mysql> SELECT database();
++------------------------+
+| database()             |
++------------------------+
+| volleyball_gamerecoder |
++------------------------+
+1 row in set (0.00 sec)
+
+mysql> 
+mysql> CREATE TABLE team (
+    ->     teamID INTEGER,
+    ->     name VARCHAR(30) NOT NULL,
+    ->     gender ENUM('m', 'f') NOT NULL DEFAULT 'f',
+    ->     PRIMARY KEY (teamID)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO team VALUES (1, 'girlteam1', 'f');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO team VALUES (2, 'girlteam2', 'f');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO team VALUES (3, 'girlteam3', 'f');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO team VALUES (4, 'girlteam4', 'f');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> 
+mysql> CREATE TABLE member (
+    ->     teamID INTEGER NOT NULL,
+    ->     FOREIGN KEY (teamID) REFERENCES team(teamID) ON DELETE CASCADE ON UPDATE CASCADE,
+    -> 
+    ->     IDnumber CHAR(10),
+    ->     name VARCHAR(30) NOT NULL,
+    ->     degree VARCHAR(100) NOT NULL,
+    ->     role ENUM('coach', 'manager', 'newbie', 'spiker', 'blocker', 'setter', 'libero') NOT NULL DEFAULT 'newbie',
+    ->     jersey_number TINYINT CHECK (jersey_number > 0 AND jersey_number < 100),
+    ->     PRIMARY KEY (IDnumber)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO member VALUES (1, 'F123456788', 'Melody', 'univ-dept-1-A12345678', 'blocker', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO member VALUES (2, 'F123456777', 'Jessica', 'univ-dept-4-B87654321', 'coach', DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO member VALUES (3, 'F123456666', 'Silvia', 'univ-dept-3-C11111111', 'setter', 11);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO member VALUES (4, 'F123455555', 'Kathy', 'univ-dept-2-D99999999', 'spiker', 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> 
+mysql> CREATE TABLE competition (
+    ->     name VARCHAR(30),
+    ->     date DATE NOT NULL CHECK (date >= DATE'2018-1-1'),
+    ->     site VARCHAR(30) NOT NULL DEFAULT 'univ',
+    ->     PRIMARY KEY (name)
+    -> );
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> INSERT INTO competition VALUES ('2018-competition1', DATE'2018-1-1', DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO competition VALUES ('2018-competition2', DATE'2018-2-2', DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO competition VALUES ('2018-competition3', DATE'2018-3-3', DEFAULT);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> 
+mysql> CREATE TABLE game (
+    ->     competitionID VARCHAR(30) NOT NULL,
+    ->     FOREIGN KEY (competitionID) REFERENCES competition(name) ON DELETE CASCADE ON UPDATE CASCADE,
+    ->     teamID_1 INTEGER NOT NULL,
+    ->     FOREIGN KEY (teamID_1) REFERENCES team(teamID) ON DELETE CASCADE ON UPDATE CASCADE,
+    ->     teamID_2 INTEGER NOT NULL,
+    ->     FOREIGN KEY (teamID_2) REFERENCES team(teamID) ON DELETE CASCADE ON UPDATE CASCADE,
+    -> 
+    ->     gameID INTEGER,
+    ->     start_time TIME NOT NULL,
+    ->     court INTEGER NOT NULL,
+    ->     set_number TINYINT NOT NULL DEFAULT 3 CHECK (set_number >= 1 AND set_number <= 5),
+    ->     PRIMARY KEY (gameID)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO game VALUES ('2018-competition1', 1, 2, 1, TIME'13:00:00', 1, DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO game VALUES ('2018-competition1', 3, 4, 2, TIME'13:00:00', 2, DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO game VALUES ('2018-competition1', 1, 3, 3, TIME'15:00:00', 1, DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO game VALUES ('2018-competition1', 2, 4, 4, TIME'15:00:00', 2, DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> 
+mysql> CREATE TABLE record (
+    ->     gameID INTEGER NOT NULL,
+    ->     FOREIGN KEY (gameID) REFERENCES game(gameID) ON DELETE CASCADE ON UPDATE CASCADE,
+    -> 
+    ->     ballID VARCHAR(30) NOT NULL,
+    ->     scorer CHAR(10) NOT NULL,
+    ->     cause ENUM('ace', 'attack', 'block', 'set', 'tip') NOT NULL DEFAULT 'attack',
+    ->     PRIMARY KEY (gameID, ballID)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO record VALUES (1, '1-0-1', 'F123456788', 'block');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO record VALUES (2, '1-1-1', 'F123455555', 'ace');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO record VALUES (3, '1-1-1', 'F123456666', 'set');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO record VALUES (4, '1-0-1', 'F123456788', DEFAULT);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> 
+mysql> CREATE TABLE enroll(
+    ->     competitionID VARCHAR(30) NOT NULL,
+    ->     teamID INTEGER NOT NULL,
+    ->     FOREIGN KEY (competitionID) REFERENCES competition(name) ON DELETE CASCADE ON UPDATE CASCADE,
+    ->     FOREIGN KEY (teamID) REFERENCES team(teamID) ON DELETE CASCADE ON UPDATE CASCADE
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition1', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition1', 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition1', 3);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition1', 4);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition2', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition2', 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition2', 3);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition2', 4);
+Query OK, 1 row affected (0.01 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition3', 1);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition3', 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition3', 3);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO enroll VALUES ('2018-competition3', 4);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> 
+mysql> CREATE TABLE depend(
+    ->     gameID_early INTEGER NOT NULL,
+    ->     gameID_late INTEGER NOT NULL,
+    ->     FOREIGN KEY (gameID_early) REFERENCES game(gameID) ON DELETE CASCADE ON UPDATE CASCADE,
+    ->     FOREIGN KEY (gameID_late) REFERENCES game(gameID) ON DELETE CASCADE ON UPDATE CASCADE
+    -> );
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> INSERT INTO depend VALUES (1, 2);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO depend VALUES (2, 3);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO depend VALUES (3, 4);
+Query OK, 1 row affected (0.00 sec)
+
+mysql> 
+mysql> SHOW TABLES FROM volleyball_gamerecoder;
++----------------------------------+
+| Tables_in_volleyball_gamerecoder |
++----------------------------------+
+| competition                      |
+| depend                           |
+| enroll                           |
+| game                             |
+| member                           |
+| record                           |
+| team                             |
++----------------------------------+
+7 rows in set (0.00 sec)
+
+mysql> SHOW CREATE TABLE team;
++-------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table | Create Table                                                                                                                                                                                     |
++-------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| team  | CREATE TABLE `team` (
+  `teamID` int(11) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `gender` enum('m','f') NOT NULL DEFAULT 'f',
+  PRIMARY KEY (`teamID`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++-------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM team;
++--------+-----------+--------+
+| teamID | name      | gender |
++--------+-----------+--------+
+|      1 | girlteam1 | f      |
+|      2 | girlteam2 | f      |
+|      3 | girlteam3 | f      |
+|      4 | girlteam4 | f      |
++--------+-----------+--------+
+4 rows in set (0.00 sec)
+
+mysql> SHOW CREATE TABLE member;
++--------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table  | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
++--------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| member | CREATE TABLE `member` (
+  `teamID` int(11) NOT NULL,
+  `IDnumber` char(10) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  `degree` varchar(100) NOT NULL,
+  `role` enum('coach','manager','newbie','spiker','blocker','setter','libero') NOT NULL DEFAULT 'newbie',
+  `jersey_number` tinyint(4) DEFAULT NULL,
+  PRIMARY KEY (`IDnumber`),
+  KEY `teamID` (`teamID`),
+  CONSTRAINT `member_ibfk_1` FOREIGN KEY (`teamID`) REFERENCES `team` (`teamID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++--------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM member;
++--------+------------+---------+-----------------------+---------+---------------+
+| teamID | IDnumber   | name    | degree                | role    | jersey_number |
++--------+------------+---------+-----------------------+---------+---------------+
+|      4 | F123455555 | Kathy   | univ-dept-2-D99999999 | spiker  |             2 |
+|      3 | F123456666 | Silvia  | univ-dept-3-C11111111 | setter  |            11 |
+|      2 | F123456777 | Jessica | univ-dept-4-B87654321 | coach   |          NULL |
+|      1 | F123456788 | Melody  | univ-dept-1-A12345678 | blocker |             1 |
++--------+------------+---------+-----------------------+---------+---------------+
+4 rows in set (0.01 sec)
+
+mysql> SHOW CREATE TABLE competition;
++-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table       | Create Table                                                                                                                                                                                    |
++-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| competition | CREATE TABLE `competition` (
+  `name` varchar(30) NOT NULL,
+  `date` date NOT NULL,
+  `site` varchar(30) NOT NULL DEFAULT 'univ',
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++-------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM competition;
++-------------------+------------+------+
+| name              | date       | site |
++-------------------+------------+------+
+| 2018-competition1 | 2018-01-01 | univ |
+| 2018-competition2 | 2018-02-02 | univ |
+| 2018-competition3 | 2018-03-03 | univ |
++-------------------+------------+------+
+3 rows in set (0.00 sec)
+
+mysql> SHOW CREATE TABLE game;
++-------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
++-------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| game  | CREATE TABLE `game` (
+  `competitionID` varchar(30) NOT NULL,
+  `teamID_1` int(11) NOT NULL,
+  `teamID_2` int(11) NOT NULL,
+  `gameID` int(11) NOT NULL,
+  `start_time` time NOT NULL,
+  `court` int(11) NOT NULL,
+  `set_number` tinyint(4) NOT NULL DEFAULT '3',
+  PRIMARY KEY (`gameID`),
+  KEY `competitionID` (`competitionID`),
+  KEY `teamID_1` (`teamID_1`),
+  KEY `teamID_2` (`teamID_2`),
+  CONSTRAINT `game_ibfk_1` FOREIGN KEY (`competitionID`) REFERENCES `competition` (`name`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `game_ibfk_2` FOREIGN KEY (`teamID_1`) REFERENCES `team` (`teamID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `game_ibfk_3` FOREIGN KEY (`teamID_2`) REFERENCES `team` (`teamID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++-------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM game;
++-------------------+----------+----------+--------+------------+-------+------------+
+| competitionID     | teamID_1 | teamID_2 | gameID | start_time | court | set_number |
++-------------------+----------+----------+--------+------------+-------+------------+
+| 2018-competition1 |        1 |        2 |      1 | 13:00:00   |     1 |          3 |
+| 2018-competition1 |        3 |        4 |      2 | 13:00:00   |     2 |          3 |
+| 2018-competition1 |        1 |        3 |      3 | 15:00:00   |     1 |          3 |
+| 2018-competition1 |        2 |        4 |      4 | 15:00:00   |     2 |          3 |
++-------------------+----------+----------+--------+------------+-------+------------+
+4 rows in set (0.00 sec)
+
+mysql> SHOW CREATE TABLE record;
++--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table  | Create Table                                                                                                                                                                                                                                                                                                                                                                                     |
++--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| record | CREATE TABLE `record` (
+  `gameID` int(11) NOT NULL,
+  `ballID` varchar(30) NOT NULL,
+  `scorer` char(10) NOT NULL,
+  `cause` enum('ace','attack','block','set','tip') NOT NULL DEFAULT 'attack',
+  PRIMARY KEY (`gameID`,`ballID`),
+  CONSTRAINT `record_ibfk_1` FOREIGN KEY (`gameID`) REFERENCES `game` (`gameID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++--------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM record;
++--------+--------+------------+--------+
+| gameID | ballID | scorer     | cause  |
++--------+--------+------------+--------+
+|      1 | 1-0-1  | F123456788 | block  |
+|      2 | 1-1-1  | F123455555 | ace    |
+|      3 | 1-1-1  | F123456666 | set    |
+|      4 | 1-0-1  | F123456788 | attack |
++--------+--------+------------+--------+
+4 rows in set (0.00 sec)
+
+mysql> SHOW CREATE TABLE enroll;
++--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table  | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
++--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| enroll | CREATE TABLE `enroll` (
+  `competitionID` varchar(30) NOT NULL,
+  `teamID` int(11) NOT NULL,
+  KEY `competitionID` (`competitionID`),
+  KEY `teamID` (`teamID`),
+  CONSTRAINT `enroll_ibfk_1` FOREIGN KEY (`competitionID`) REFERENCES `competition` (`name`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `enroll_ibfk_2` FOREIGN KEY (`teamID`) REFERENCES `team` (`teamID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM enroll;
++-------------------+--------+
+| competitionID     | teamID |
++-------------------+--------+
+| 2018-competition1 |      1 |
+| 2018-competition1 |      2 |
+| 2018-competition1 |      3 |
+| 2018-competition1 |      4 |
+| 2018-competition2 |      1 |
+| 2018-competition2 |      2 |
+| 2018-competition2 |      3 |
+| 2018-competition2 |      4 |
+| 2018-competition3 |      1 |
+| 2018-competition3 |      2 |
+| 2018-competition3 |      3 |
+| 2018-competition3 |      4 |
++-------------------+--------+
+12 rows in set (0.00 sec)
+
+mysql> SHOW CREATE TABLE depend;
++--------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Table  | Create Table                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
++--------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| depend | CREATE TABLE `depend` (
+  `gameID_early` int(11) NOT NULL,
+  `gameID_late` int(11) NOT NULL,
+  KEY `gameID_early` (`gameID_early`),
+  KEY `gameID_late` (`gameID_late`),
+  CONSTRAINT `depend_ibfk_1` FOREIGN KEY (`gameID_early`) REFERENCES `game` (`gameID`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `depend_ibfk_2` FOREIGN KEY (`gameID_late`) REFERENCES `game` (`gameID`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 |
++--------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+mysql> SELECT * FROM depend;
++--------------+-------------+
+| gameID_early | gameID_late |
++--------------+-------------+
+|            1 |           2 |
+|            2 |           3 |
+|            3 |           4 |
++--------------+-------------+
+3 rows in set (0.00 sec)
+
+mysql> NOTEE
